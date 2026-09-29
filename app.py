@@ -4,8 +4,8 @@ Gerador de senhas (back-end + front-end em um único arquivo).
 Como funciona:
   - O back-end (Flask) recebe uma lista de IMEIs e devolve a senha de cada um.
   - O front-end (HTML/CSS/JS) fica dentro da variável PAGINA e é entregue na rota "/".
-  - A resposta é mostrada no formato de comando:  PRLOCK,SENHA,0#  (abrir)
-                                                  PRLOCK,SENHA,1#  (fechar)
+  - A resposta é mostrada no formato de comando:  PRLOCK,"SENHA",0#  (abrir)
+                                                  PRLOCK,"SENHA",1#  (fechar)
 
 Rodar localmente:
     pip install -r requirements.txt
@@ -100,7 +100,7 @@ let modo = 0;         // 0 = abrir, 1 = fechar
 function mostrar() {
   const saida = document.getElementById("saida");
   saida.textContent = resultados
-    .map(d => 'PRLOCK,"' + d.senha + '",' + modo + '#')
+    .map(d => 'PRLOCK,' + d.senha + ',' + modo + '#')
     .join("\\n");
 }
 
@@ -164,7 +164,7 @@ def index():
 def gerar():
     """Recebe {"imeis": "texto com um IMEI por linha"} e devolve a lista de senhas."""
     # Lê o JSON enviado pelo front-end (se vier vazio/inválido, usa texto vazio)
-    texto = (request.get_json(silent=True) or {}).get("imeis", )
+    texto = (request.get_json(silent=True) or {}).get("imeis", "")
 
     # Para cada linha: tira espaços das pontas, ignora linhas vazias e calcula a senha.
     # Cada IMEI é calculado de forma independente e sempre tratado como texto.
