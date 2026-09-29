@@ -4,6 +4,8 @@ Gerador de senhas (back-end + front-end em um único arquivo).
 Como funciona:
   - O back-end (Flask) recebe uma lista de IMEIs e devolve a senha de cada um.
   - O front-end (HTML/CSS/JS) fica dentro da variável PAGINA e é entregue na rota "/".
+  - A resposta é mostrada no formato de comando:  PRLOCK,"SENHA",0#  (abrir)
+                                                  PRLOCK,"SENHA",1#  (fechar)
 
 Rodar localmente:
     pip install -r requirements.txt
@@ -58,6 +60,11 @@ PAGINA = """<!DOCTYPE html>
     color:#fff; font-size:15px; cursor:pointer; }
   button.sec { background:#6b7280; }   /* botões secundários (cinza) */
   label { font-weight:600; display:block; margin-top:8px; }
+
+  /* Seletor ABRIR / FECHAR: o botão ativo fica destacado */
+  .modo { display:flex; gap:8px; margin:8px 0; }
+  .modo button { margin:0; background:#e5e7eb; color:#111; border:2px solid transparent; }
+  .modo button.ativo { background:#2563eb; color:#fff; }
 </style>
 </head>
 <body>
@@ -73,13 +80,39 @@ PAGINA = """<!DOCTYPE html>
   <button class="sec" onclick="copiar()">Copiar resultado</button>
   <button class="sec" onclick="limpar()">Limpar</button>
 
-  <!-- Retângulo de RESPOSTA: aqui aparece "IMEI -> SENHA" -->
+  <!-- Seletor do comando: ABRIR usa 0 no final, FECHAR usa 1 -->
+  <label>Comando</label>
+  <div class="modo">
+    <button id="btn-abrir" class="ativo" onclick="definirModo(0)">ABRIR (0)</button>
+    <button id="btn-fechar" onclick="definirModo(1)">FECHAR (1)</button>
+  </div>
+
+  <!-- Retângulo de RESPOSTA: aqui aparece PRLOCK,"SENHA",0# -->
   <label>Resposta</label>
   <div id="saida" class="saida"></div>
 </div>
 
 <script>
-// Envia os IMEIs para o back-end e mostra as senhas na caixa de resposta
+let resultados = [];  // guarda as senhas geradas para poder trocar ABRIR/FECHAR sem recalcular
+let modo = 0;         // 0 = abrir, 1 = fechar
+
+// Monta a resposta: uma linha de comando para cada senha
+function mostrar() {
+  const saida = document.getElementById("saida");
+  saida.textContent = resultados
+    .map(d => 'PRLOCK,"' + d.senha + '",' + modo + '#')
+    .join("\\n");
+}
+
+// Troca entre ABRIR (0) e FECHAR (1) e atualiza a resposta na hora
+function definirModo(novo) {
+  modo = novo;
+  document.getElementById("btn-abrir").classList.toggle("ativo", novo === 0);
+  document.getElementById("btn-fechar").classList.toggle("ativo", novo === 1);
+  mostrar();
+}
+
+// Envia os IMEIs para o back-end e mostra os comandos na caixa de resposta
 async function gerar() {
   const saida = document.getElementById("saida");
   try {
@@ -89,12 +122,13 @@ async function gerar() {
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({imeis: document.getElementById("entrada").value})
     });
-    const dados = await r.json();   // lista de {imei, senha}
+    resultados = await r.json();   // lista de {imei, senha}
 
-    // Monta uma linha "IMEI  ->  SENHA" para cada resultado
-    saida.textContent = dados.length
-      ? dados.map(d => d.imei + "  →  " + d.senha).join("\\n")
-      : "Nenhum IMEI informado.";
+    if (resultados.length) {
+      mostrar();
+    } else {
+      saida.textContent = "Nenhum IMEI informado.";
+    }
   } catch (e) {
     // Se o servidor não responder, avisa o usuário
     saida.textContent = "Erro ao falar com o servidor.";
@@ -108,6 +142,7 @@ function copiar() {
 
 // Esvazia as duas caixas
 function limpar() {
+  resultados = [];
   document.getElementById("entrada").value = "";
   document.getElementById("saida").textContent = "";
 }
