@@ -164,7 +164,7 @@ def index():
 def gerar():
     """Recebe {"imeis": "texto com um IMEI por linha"} e devolve a lista de senhas."""
     # Lê o JSON enviado pelo front-end (se vier vazio/inválido, usa texto vazio)
-    texto = (request.get_json(silent=True) or {}).get("imeis", "")
+    texto = (request.get_json(silent=True) or {}).get("imeis", )
 
     # Para cada linha: tira espaços das pontas, ignora linhas vazias e calcula a senha.
     # Cada IMEI é calculado de forma independente e sempre tratado como texto.
