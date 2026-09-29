@@ -4,8 +4,8 @@ Gerador de senhas (back-end + front-end em um único arquivo).
 Como funciona:
   - O back-end (Flask) recebe uma lista de IMEIs e devolve a senha de cada um.
   - O front-end (HTML/CSS/JS) fica dentro da variável PAGINA e é entregue na rota "/".
-  - A resposta é mostrada no formato de comando:  PRLOCK,"SENHA",0#  (abrir)
-                                                  PRLOCK,"SENHA",1#  (fechar)
+  - A resposta é mostrada no formato de comando:  PRLOCK,SENHA,0#  (abrir)
+                                                  PRLOCK,SENHA,1#  (fechar)
 
 Rodar localmente:
     pip install -r requirements.txt
